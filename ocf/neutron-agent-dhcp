@@ -20,6 +20,7 @@
 #   OCF_RESKEY_agent_config
 #   OCF_RESKEY_user
 #   OCF_RESKEY_pid
+#   OCF_RESKEY_logfile
 #   OCF_RESKEY_amqp_server_port
 #   OCF_RESKEY_additional_parameters
 #######################################################################
@@ -37,6 +38,7 @@ OCF_RESKEY_config_default="/etc/neutron/neutron.conf"
 OCF_RESKEY_agent_config_default="/etc/neutron/dhcp_agent.ini"
 OCF_RESKEY_user_default="neutron"
 OCF_RESKEY_pid_default="$HA_RSCTMP/$OCF_RESOURCE_INSTANCE.pid"
+OCF_RESKEY_logfile_default="/var/log/neutron/dhcp-agent.log"
 OCF_RESKEY_amqp_server_port_default="5672"
 
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
@@ -44,6 +46,7 @@ OCF_RESKEY_amqp_server_port_default="5672"
 : ${OCF_RESKEY_agent_config=${OCF_RESKEY_agent_config_default}}
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
 : ${OCF_RESKEY_pid=${OCF_RESKEY_pid_default}}
+: ${OCF_RESKEY_logfile=${OCF_RESKEY_logfile}}
 : ${OCF_RESKEY_amqp_server_port=${OCF_RESKEY_amqp_server_port_default}}
 
 #######################################################################
@@ -117,6 +120,14 @@ The pid file to use for this OpenStack DHCP Service (neutron-dhcp-agent) instanc
 </longdesc>
 <shortdesc lang="en">OpenStack DHCP Service (neutron-dhcp-agent) pid file</shortdesc>
 <content type="string" default="${OCF_RESKEY_pid_default}" />
+</parameter>  
+
+<parameter name="logfile" unique="0" required="0">
+<longdesc lang="en">
+Full path to log file for this OpenStack DHCP Service (neutron-dhcp-agent)
+</longdesc>
+<shortdesc lang="en">OpenStack DHCP Service (neutron-dhcp-agent) log file</shortdesc>
+<content type="string" default="${OCF_RESKEY_logfile_default}" />
 </parameter>  
 
 <parameter name="amqp_server_port" unique="0" required="0">                                                                                                                                                              
@@ -241,7 +252,7 @@ neutron_dhcp_agent_start() {
     # run the actual neutron-dhcp-agent daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
-       --config-file=$OCF_RESKEY_agent_config --log-file=/var/log/neutron/dhcp-agent.log $OCF_RESKEY_additional_parameters"' >> \
+       --config-file=$OCF_RESKEY_agent_config --log-file=$OCF_RESKEY_logfile $OCF_RESKEY_additional_parameters"' >> \
 	/dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
 
     # Spin waiting for the server to come up.
